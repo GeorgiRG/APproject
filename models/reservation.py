@@ -1,4 +1,5 @@
 from extensions import db
+from sqlalchemy.sql import text
 
 
 class Reservation(db.Model):
@@ -13,20 +14,9 @@ class Reservation(db.Model):
     reserved_by = db.Column(db.String(100), nullable=False)
     workspace = db.Column(db.String(30), nullable=False)
 
-    def info(self):
-        return {
-            'id': self.id,
-            'start_time': str(self.start_time),
-            'end_time': str(self.end_time),
-            'duration': self.duration,
-            'reserved_by': self.reserved_by,
-            'workspace': self.workspace,
-            'user_id': self.user_id
-        }
-
     @classmethod
     def show_all(cls):
-        return cls.query.all()
+        return cls.query.order_by(text('-id')).all()
 
     @classmethod
     def show_mine(cls, name):

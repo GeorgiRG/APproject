@@ -13,6 +13,8 @@ from models.timeframes import Timeframes
 
 from datetime import datetime, timedelta
 
+from schemas.reservation import ReservationSchema
+
 
 class ReservationResource(Resource):
 
@@ -21,11 +23,11 @@ class ReservationResource(Resource):
         user = User.get_by_id(user_id=get_jwt_identity())
 
         if user.is_admin:
-            Reservation.show_all(), HTTPStatus.OK
+            return ReservationSchema(many=True).dump(Reservation.show_all()), HTTPStatus.OK
 
         else:
             if Reservation.show_mine(user.username):
-                Reservation.show_mine(user.username), HTTPStatus.OK
+                return ReservationSchema(many=True).dump(Reservation.show_mine(user.username)), HTTPStatus.OK
             else:
                 return {"message": 'You have no reservations'}, HTTPStatus.OK
 
@@ -33,24 +35,25 @@ class ReservationResource(Resource):
     def post(self):
         json_data = request.get_json()
 
+        data, errors = ReservationSchema().load(json_data)
         current_user = User.get_by_id(user_id=get_jwt_identity())
-        current_workspace = Workspace.get_by_number(json_data['workspace_number'])
+        current_workspace = Workspace.get_by_number(data.get('workspace_number'))
 
         # check duration format
 
-        if "minutes" in json_data['duration']:
-            increase = timedelta(minutes=int(''.join(filter(str.isdigit, json_data['duration']))))
+        if "minutes" in data.get('duration'):
+            increase = timedelta(minutes=int(''.join(filter(str.isdigit, data.get('duration')))))
         elif "hours" in json_data['duration']:
-            increase = timedelta(hours=int(''.join(filter(str.isdigit, json_data['duration']))))
+            increase = timedelta(hours=int(''.join(filter(str.isdigit, data.get('duration')))))
         else:
-            return {"message": 'Wrong format'}, HTTPStatus.BAD_REQUEST
+            return {"message": 'Wrong format, correct example - [10 hours]'}, HTTPStatus.BAD_REQUEST
 
         # assign start and end time
 
-        starting_time = datetime.strptime(json_data['start_time'], "%d/%m/%Y %H:%M")
-        ending_time = datetime.strptime(json_data['start_time'], "%d/%m/%Y %H:%M") + increase
+        ending_time = data.get('start_time') + increase
 
-        check_timeframes_result = check_timeframes(starting_time, ending_time, current_workspace.workspace_number)
+        check_timeframes_result = check_timeframes(data.get('starting_time'), ending_time,
+                                                   current_workspace.workspace_number)
 
         # check if it can fit all
 
@@ -65,15 +68,9 @@ class ReservationResource(Resource):
         if check_timeframes_result is not None:
             return {"message": check_timeframes_result}, HTTPStatus.BAD_REQUEST
         else:
-            new_reservation = Reservation(start_time=starting_time,
-                                          end_time=ending_time,
-                                          duration=str(increase),
-                                          user_id=current_user.id,
-                                          reserved_by=current_user.username,
-                                          workspace=current_workspace.workspace_number
-                                          )
+            new_reservation = Reservation(**data)
 
-            new_timeframe = Timeframes(start_time=starting_time,
+            new_timeframe = Timeframes(start_time=data.get('start_time'),
                                        end_time=ending_time,
                                        workspace=current_workspace.workspace_number,
                                        user_id=current_user.id
@@ -82,7 +79,7 @@ class ReservationResource(Resource):
             new_reservation.save()
             new_timeframe.save()
 
-            return new_reservation.info(), HTTPStatus.OK
+            return ReservationSchema().dump(new_reservation), HTTPStatus.OK
 
     @jwt_required
     def put(self):

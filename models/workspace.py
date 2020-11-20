@@ -3,7 +3,7 @@ from extensions import db
 
 class Workspace(db.Model):
 
-    __tablename__='workspace'
+    __tablename__ = 'workspace'
     id = db.Column(db.Integer, primary_key=True)
     workspace_number = db.Column(db.String(30), nullable=False, unique=True)
     turkuamk_only = db.Column(db.Boolean(), default=False)
