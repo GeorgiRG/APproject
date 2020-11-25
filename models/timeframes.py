@@ -18,6 +18,10 @@ class Timeframes(db.Model):
     def get_for_this_workspace(cls, workspace, user_id):
         return cls.query.filter_by(workspace=workspace, user_id=user_id).first()
 
+    @classmethod
+    def get_for_update(cls, workspace, user_id):
+        return cls.query.filter(cls.workspace == workspace, cls.user_id != user_id).first()
+
     def save(self):
         db.session.add(self)
         db.session.commit()

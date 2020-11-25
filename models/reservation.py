@@ -9,6 +9,7 @@ class Reservation(db.Model):
     start_time = db.Column(db.DateTime(), nullable=False)
     end_time = db.Column(db.DateTime(), nullable=False)
     duration = db.Column(db.String(50), nullable=False)
+    attendees = db.Column(db.Integer(), nullable=False)
     created_at = db.Column(db.DateTime(), nullable=False, server_default=db.func.now())
     user_id = db.Column(db.Integer(), db.ForeignKey("user.id"))
     reserved_by = db.Column(db.String(100), nullable=False)

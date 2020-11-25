@@ -1,7 +1,7 @@
 class Config:
     DEBUG = True
 
-    SQLALCHEMY_DATABASE_URI = 'postgresql+psycopg2://georgi:9397@localhost:5432/Test'
+    SQLALCHEMY_DATABASE_URI = 'postgresql+psycopg2://name:pass@localhost:5432/DatabaseName'
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
     SECRET_KEY = 'super-secret-key'

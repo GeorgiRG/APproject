@@ -6,7 +6,7 @@ from config import Config
 from extensions import db, jwt
 
 from resources.token import TokenResource, RefreshResource, RevokeResource, black_list
-from resources.user import UserResource, MeResource, UserFindResource
+from resources.user import UserResource, MeResource, UserFindResource, UserDeleteResource
 from resources.reservation import ReservationResource
 from resources.workspace import WorkspaceResource, WorkspaceUpdateResource
 
@@ -36,7 +36,8 @@ def register_resources(app):
     api = Api(app)
 
     api.add_resource(UserResource, '/users')
-    api.add_resource(UserFindResource, '/users/find/<name>')
+    api.add_resource(UserFindResource, '/users/find/<string:name>')
+    api.add_resource(UserDeleteResource, '/users/delete/<string:name>')
 
     api.add_resource(MeResource, '/me')
 

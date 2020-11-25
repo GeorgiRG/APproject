@@ -6,6 +6,8 @@ from http import HTTPStatus
 from models.workspace import Workspace
 from models.user import User
 
+from schemas.workspace import WorkspaceSchema
+
 
 class WorkspaceResource(Resource):
     def get(self):
@@ -20,14 +22,15 @@ class WorkspaceResource(Resource):
     def post(self):
         json_data = request.get_json()
         user = User.get_by_id(user_id=get_jwt_identity())
+        data = WorkspaceSchema().load(json_data)
+
+        if Workspace.get_by_number(data.get("workspace_number")):
+            return {"message": "This workspace exists"}, HTTPStatus.BAD_REQUEST
 
         if user.is_admin:
-            workspace = Workspace(workspace_number=json_data['workspace_number'],
-                                  turkuamk_only=json_data['turkuamk_only'],
-                                  available_space=json_data['available_space']
-                                  )
+            workspace = Workspace(**data)
             workspace.save()
-            return workspace.info(), HTTPStatus.CREATED
+            return WorkspaceSchema().dump(workspace), HTTPStatus.CREATED
         else:
             return {'message': 'User is not admin'}, HTTPStatus.FORBIDDEN
 
@@ -37,15 +40,19 @@ class WorkspaceUpdateResource(Resource):
     def put(self, workspace_number):
         json_data = request.get_json()
         user = User.get_by_id(user_id=get_jwt_identity())
+        data = WorkspaceSchema().load(json_data)
 
         workspace = Workspace.get_by_number(workspace_number)
+        if workspace is None:
+            return {"message": "This workspace does not exist"}, HTTPStatus.BAD_REQUEST
+
         if user.is_admin:
-            workspace.workspace_number = json_data['workspace_number']
-            workspace.turkuamk_only = json_data['turkuamk_only']
-            workspace.available_space = json_data['available_space']
+            workspace.workspace_number = data.get('workspace_number')
+            workspace.turkuamk_only = data.get('turkuamk_only')
+            workspace.available_space = data.get('available_space')
 
             workspace.save()
-            return workspace.info(), HTTPStatus.CREATED
+            return WorkspaceSchema().dump(workspace), HTTPStatus.OK
         else:
             return {'message': 'User is not admin'}, HTTPStatus.FORBIDDEN
 
@@ -53,6 +60,9 @@ class WorkspaceUpdateResource(Resource):
     def delete(self, workspace_number):
         user = User.get_by_id(user_id=get_jwt_identity())
         workspace = Workspace.get_by_number(workspace_number)
+
+        if workspace is None:
+            return {"message": "This workspace does not exist"}, HTTPStatus.BAD_REQUEST
 
         if user.is_admin:
             workspace.delete()

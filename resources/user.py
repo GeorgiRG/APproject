@@ -23,6 +23,9 @@ class UserResource(Resource):
         admin = check_admin(data.get("admin_pass"))
         data = UserSchema(unknown=EXCLUDE).load(json_data)
 
+        if User.get_by_username(data.get("username")) or User.get_by_email(data.get("email")):
+            return {"message": "Username or email already taken"}, HTTPStatus.BAD_REQUEST
+
         if admin and check_email(data.get("email")):
             user = User(is_admin=True, is_turkuamk=True, **data)
             user.save()
@@ -55,6 +58,8 @@ class UserFindResource(Resource):
         else:
             return user_schema_outsider.dump(required_user), HTTPStatus.OK
 
+
+class UserDeleteResource(Resource):
     @jwt_required
     def delete(self, name):
         user = User.get_by_id(get_jwt_identity())
