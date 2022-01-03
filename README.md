@@ -1,3 +1,3 @@
 # APproject
 
-A web app for making reservations. 
+A web app for making reservations. School project.
