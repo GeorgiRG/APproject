@@ -1,3 +1,3 @@
 # APproject
 
-A web applicaiton for making reservations. It exposes API for user, workspace and reservation creation and management. Has password management and database manipulation. School project. Made possible thanks to https://github.com/TrainingByPackt/Python-API-Development-Fundamentals
+A web applicaiton for making reservations. It exposes APIs for user that allow to create users, workspaces and reservations with different options. PostgreSQL used as a database. School project. Made possible thanks to https://github.com/TrainingByPackt/Python-API-Development-Fundamentals
